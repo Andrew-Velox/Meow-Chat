@@ -78,7 +78,7 @@ class ChatroomConsumer(WebsocketConsumer):
     
 
     def update_online_count(self):
-        online_count = self.chatroom.users_online.count()-1
+        online_count = self.chatroom.users_online.count()
 
         event  = {
             'type': 'online_count_handler',
@@ -91,19 +91,12 @@ class ChatroomConsumer(WebsocketConsumer):
     def online_count_handler(self,event):
         online_count = event['online_count']
 
-        chat_messages = ChatGroup.objects.get(group_name=self.chatroom_name).chat_messages.all()[:30]
-
-        author_ids = set([ message.author.id for message in chat_messages])
-        users = User.objects.filter(id__in=author_ids)
-
-
-        context = {
+        # Send online count update
+        self.send(text_data=json.dumps({
+            'event': 'online_count_update',
             'online_count': online_count,
-            'chat_group': self.chatroom,
-            'users': users,
-        }
-        html = render_to_string('a_rtchat/partials/online_count.html', context)
-        self.send(text_data = html)
+            'online_users': [user.id for user in self.chatroom.users_online.all()]
+        }))
 
     def user_left_handler(self, event):
         username = event["username"]

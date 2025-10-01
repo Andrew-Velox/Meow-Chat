@@ -39,16 +39,47 @@
             --discord-idle: #faa61a;
             --discord-dnd: #f04747;
             --discord-offline: #747f8d;
+            --discord-input: #40444b;
+            --discord-input-border: #202225;
+            --discord-primary-hover: #4752c4;
+            --discord-gray: #36393f;
         }
 
         [x-cloak] { 
             display: none !important; 
         }
 
-        body {
+        html, body {
             background-color: var(--discord-background);
             color: var(--discord-text-primary);
             font-family: 'Whitney', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            width: 100%;
+            height: 100vh;
+            max-width: 100vw;
+        }
+
+        /* Main layout container */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header fixed height */
+        .app-header {
+            flex-shrink: 0;
+            height: 3rem;
+        }
+
+        /* Content area takes remaining space */
+        .app-content {
+            flex: 1;
+            overflow: hidden;
+            min-height: 0;
         }
 
         h1 {
@@ -167,6 +198,23 @@
         .alert-warning { background-color: var(--discord-warning); }
         .alert-danger { background-color: var(--discord-danger); }
 
+        /* Discord Color Utilities */
+        .bg-discord-primary { background-color: var(--discord-primary) !important; }
+        .bg-discord-secondary { background-color: var(--discord-secondary-bg) !important; }
+        .bg-discord-tertiary { background-color: var(--discord-tertiary-bg) !important; }
+        .bg-discord-gray { background-color: var(--discord-gray) !important; }
+        .bg-discord-input { background-color: var(--discord-input) !important; }
+        .bg-discord-danger { background-color: var(--discord-danger) !important; }
+        .bg-discord-primary-hover:hover { background-color: var(--discord-primary-hover) !important; }
+        
+        .text-discord-text-primary { color: var(--discord-text-primary) !important; }
+        .text-discord-text-secondary { color: var(--discord-text-secondary) !important; }
+        .text-discord-text-muted { color: var(--discord-text-muted) !important; }
+        
+        .border-discord-primary { border-color: var(--discord-primary) !important; }
+        .border-discord-input-border { border-color: var(--discord-input-border) !important; }
+        .border-discord-border { border-color: var(--discord-border) !important; }
+
         /* Status indicators */
         .green-dot, .online-dot {
             @apply h-3 w-3 rounded-full;
@@ -193,14 +241,20 @@
         .discord-sidebar {
             background-color: var(--discord-secondary-bg);
             border-right: 1px solid var(--discord-border);
+            min-width: 4rem;
+            max-width: 4rem;
         }
 
         .discord-channel-list {
             background-color: var(--discord-secondary-bg);
+            min-width: 15rem;
+            max-width: 15rem;
         }
 
         .discord-chat-area {
             background-color: var(--discord-background);
+            min-width: 0;
+            overflow: hidden;
         }
 
         .discord-message {
@@ -257,6 +311,25 @@
         .allauth .helptext {
             @apply block mt-4;
             color: var(--discord-text-muted);
+        }
+
+        /* Container and overflow fixes */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        .container-fix {
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+
+        /* Responsive text and elements */
+        @media (max-width: 768px) {
+            .discord-channel-list {
+                min-width: 12rem;
+                max-width: 12rem;
+            }
         }
 
         /* Additional Discord-inspired animations and effects */
@@ -377,6 +450,47 @@
             transform: scale(1.05);
         }
 
+        /* File preview animations */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
+        #file_preview {
+            animation: slideDown 0.2s ease-out;
+        }
+
+        #file_preview.hiding {
+            animation: slideUp 0.2s ease-out;
+        }
+
+        /* File upload button enhancement */
+        #upload_button {
+            transition: all 0.2s ease;
+        }
+
+        #upload_button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(88, 101, 242, 0.3);
+        }
+
         .hover-scale:active {
             transform: scale(0.95);
         }
@@ -439,18 +553,22 @@
     </style>
 </head>
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' class="{% block class %}{% endblock %}">
-	
-    {% include 'includes/messages.html' %}
+    <div class="app-container">
+        {% include 'includes/messages.html' %}
 
-    {% include 'includes/header.html' %}
+        <header class="app-header">
+            {% include 'includes/header.html' %}
+        </header>
 
-    {% block layout %}
-    {% endblock %}
+        <main class="app-content">
+            {% block layout %}
+            {% endblock %}
+        </main>
 
-
-    {% if user.is_authenticated %}
-    <footer hx-ext="ws" ws-connect="/ws/online-status/" ></footer>
-    {% endif %}
+        {% if user.is_authenticated %}
+        <footer hx-ext="ws" ws-connect="/ws/online-status/" class="hidden"></footer>
+        {% endif %}
+    </div>
     
     {% block javascript %}{% endblock %}
 

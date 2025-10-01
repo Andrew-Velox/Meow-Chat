@@ -4,10 +4,13 @@
         <!-- Avatar -->
         <a href="{% url 'profile' message.author.username %}" class="flex-shrink-0">
             <div class="relative">
-                <div id="user-{{ message.author.id }}"></div>
                 <img class="w-10 h-10 rounded-full object-cover" src="{{ message.author.profile.avatar }}" alt="{{ message.author.profile.name }}" />
                 <!-- Online status indicator -->
-                <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-gray-600 rounded-full"></div>
+                {% if message.author in chat_group.users_online.all %}
+                <div class="green-dot absolute border-2 border-gray-600 -bottom-1 -right-1" id="msg-status-{{ message.author.id }}"></div>
+                {% else %}
+                <div class="gray-dot absolute border-2 border-gray-600 -bottom-1 -right-1" id="msg-status-{{ message.author.id }}"></div>
+                {% endif %}
             </div>
         </a>
         

@@ -2,7 +2,7 @@ from django.shortcuts import render,get_object_or_404,redirect
 from .models import *
 from .forms import *
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.contrib import messages
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -170,3 +170,25 @@ def chat_file_upload(request, chatroom_name):
         async_to_sync(channel_layer.group_send)(chatroom_name, event)
 
     return HttpResponse()
+
+
+@login_required
+def user_chats_api(request):
+    """API endpoint to get user's chats for the sidebar"""
+    # Get user's group chats (excluding public chat)
+    user_chats = ChatGroup.objects.filter(
+        members=request.user
+    ).exclude(
+        group_name='public-chat'
+    ).order_by('-id')[:10]  # Limit to 10 most recent chats
+    
+    chats_data = []
+    for chat in user_chats:
+        chats_data.append({
+            'group_name': chat.group_name,
+            'groupchat_name': chat.groupchat_name,
+            'is_private': chat.is_private,
+            'member_count': chat.members.count(),
+        })
+    
+    return JsonResponse(chats_data, safe=False)

@@ -1,57 +1,139 @@
-{% extends 'layouts/box.html' %}
+{% extends 'base.html' %}
 
-{% block content %}
+{% block layout %}
+<div class="min-h-screen bg-discord-gray flex items-center justify-center p-4">
+    <div class="bg-discord-secondary rounded-lg shadow-2xl w-full max-w-md">
+        <!-- Header -->
+        <div class="bg-discord-primary rounded-t-lg px-6 py-4">
+            <h1 class="text-white text-xl font-semibold text-center">
+                {% if onboarding %}
+                Complete Your Profile
+                {% else %}
+                Edit Profile
+                {% endif %}
+            </h1>
+        </div>
 
-{% if onboarding %}
-<h1 class="mb-4">Complete your Profile</h1>
-{% else %}
-<h1 class="mb-4">Edit your Profile</h1>
-{% endif %}
+        <!-- Profile Preview -->
+        <div class="px-6 py-6 text-center">
+            <div class="relative inline-block">
+                <img id="avatar" class="w-32 h-32 rounded-full object-cover border-4 border-discord-primary shadow-lg" 
+                     src="{{ user.profile.avatar }}" alt="Profile Avatar" />
+                <div class="absolute -bottom-2 -right-2 bg-discord-primary rounded-full p-2 shadow-lg cursor-pointer hover:bg-discord-primary-hover transition-colors" 
+                     onclick="document.getElementById('id_image').click()">
+                    <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.828-2.828z"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-4">
+                <h2 id="displayname" class="text-white text-lg font-semibold">
+                    {{ user.profile.displayname|default:"Enter display name" }}
+                </h2>
+                <p class="text-discord-text-muted">@{{ user.username }}</p>
+            </div>
+        </div>
 
-<div class="text-center flex flex-col items-center">
-    <img id="avatar" class="w-36 h-36 rounded-full object-cover my-4" src="{{ user.profile.avatar }}" />
-    <div class="text-center max-w-md">
-        <h1 id="displayname">{{ user.profile.displayname|default:"" }}</h1>
-        <div class="text-gray-400 mb-2 -mt-3">@{{ user.username }}</div>
+        <!-- Form -->
+        <form method="POST" enctype="multipart/form-data" class="px-6 pb-6 space-y-4">
+            {% csrf_token %}
+            
+            <!-- Hidden file input -->
+            <input type="file" id="id_image" name="image" accept="image/*" class="hidden" />
+            
+            <!-- Display Name Field -->
+            <div>
+                <label for="id_displayname" class="block text-discord-text-secondary text-sm font-medium mb-2">
+                    Display Name
+                </label>
+                <input type="text" 
+                       id="id_displayname" 
+                       name="displayname" 
+                       value="{{ form.displayname.value|default:'' }}"
+                       placeholder="Enter your display name"
+                       class="w-full bg-discord-input border border-discord-input-border rounded-md px-3 py-2 text-white placeholder-discord-text-muted focus:outline-none focus:ring-2 focus:ring-discord-primary focus:border-transparent transition-all">
+            </div>
+
+            <!-- Bio/Info Field -->
+            <div>
+                <label for="id_info" class="block text-discord-text-secondary text-sm font-medium mb-2">
+                    About Me
+                </label>
+                <textarea id="id_info" 
+                         name="info" 
+                         rows="3"
+                         placeholder="Tell us about yourself..."
+                         class="w-full bg-discord-input border border-discord-input-border rounded-md px-3 py-2 text-white placeholder-discord-text-muted focus:outline-none focus:ring-2 focus:ring-discord-primary focus:border-transparent transition-all resize-none">{{ form.info.value|default:'' }}</textarea>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex gap-3 pt-4">
+                <button type="submit" 
+                        class="flex-1 bg-discord-primary hover:bg-discord-primary-hover text-white font-medium py-2 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-discord-primary focus:ring-offset-2 focus:ring-offset-discord-secondary">
+                    {% if onboarding %}
+                    Complete Profile
+                    {% else %}
+                    Save Changes
+                    {% endif %}
+                </button>
+                
+                {% if onboarding %}
+                <a href="{% url 'home' %}" 
+                   class="flex-1 bg-discord-danger hover:bg-red-600 text-white font-medium py-2 px-4 rounded-md transition-colors text-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-discord-secondary">
+                    Skip
+                </a>
+                {% else %}
+                <a href="{{ request.META.HTTP_REFERER }}" 
+                   class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition-colors text-center focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-discord-secondary">
+                    Cancel
+                </a>
+                {% endif %}
+            </div>
+        </form>
     </div>
 </div>
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" >Submit</button>
-    {% if onboarding %}
-    <a class="button button-gray ml-1" href="{% url 'home' %}">Skip</a>
-    {% else %}
-    <a class="button button-gray ml-1" href="{{ request.META.HTTP_REFERER }}">Cancel</a>
-    {% endif %}
-</form>
+{% endblock %}
 
-
-
-
+{% block javascript %}
 <script>
-    
-    // This updates the avatar
-    const fileInput = document.querySelector('input[type="file"]');
+    document.addEventListener('DOMContentLoaded', function() {
+        // Avatar upload functionality
+        const fileInput = document.getElementById('id_image');
+        const avatarImg = document.getElementById('avatar');
 
-    fileInput.addEventListener('change', (event) => {
-    const file = event.target.files[0];
-    const image = document.querySelector('#avatar');
+        fileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarImg.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
 
-    if (file && file.type.includes('image')) {
-        const url = URL.createObjectURL(file);
-        image.src = url;
-    }
+        // Display name live update
+        const displayNameInput = document.getElementById('id_displayname');
+        const displayNameOutput = document.getElementById('displayname');
+
+        displayNameInput.addEventListener('input', function(event) {
+            const value = event.target.value.trim();
+            displayNameOutput.textContent = value || 'Enter display name';
+        });
+
+        // Form validation
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(event) {
+            const displayName = displayNameInput.value.trim();
+            
+            if (!displayName) {
+                event.preventDefault();
+                alert('Please enter a display name');
+                displayNameInput.focus();
+                return false;
+            }
+        });
     });
-
-    // This updates the name
-    const display_nameInput = document.getElementById('id_displayname');
-    const display_nameOutput = document.getElementById('displayname');
-
-    display_nameInput.addEventListener('input', (event) => {
-        display_nameOutput.innerText = event.target.value;
-    });
-
 </script>
-
 {% endblock %}

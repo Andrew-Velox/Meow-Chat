@@ -1,0 +1,77 @@
+<!-- Discord-style Server/Chat Sidebar -->
+<div class="w-16 flex-shrink-0 discord-sidebar flex flex-col items-center py-3 space-y-3">
+    <!-- Home/Direct Messages Button -->
+    <a href="/" class="discord-server-icon bg-indigo-500 hover:bg-indigo-600 group relative" title="Home">
+        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+        </svg>
+        <!-- Tooltip -->
+        <div class="absolute left-16 top-1/2 transform -translate-y-1/2 bg-black text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+            Home
+        </div>
+    </a>
+    
+    
+    
+    <!-- Separator -->
+    <div class="w-8 h-0.5 bg-gray-600 rounded"></div>
+    
+    <!-- Dynamic Chat List -->
+    <div id="sidebar-chats" class="flex flex-col space-y-3">
+        <!-- User's Group Chats will be populated here -->
+    </div>
+    
+    <!-- Add Server/Chat Button -->
+    <a href="{% url 'new-groupchat' %}" class="discord-server-icon bg-gray-700 hover:bg-green-600 group relative" title="Create Chat">
+        <svg class="w-6 h-6 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+        </svg>
+        <!-- Tooltip -->
+        <div class="absolute left-16 top-1/2 transform -translate-y-1/2 bg-black text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+            Create Chat
+        </div>
+    </a>
+</div>
+
+<script>
+// Function to load and display user's chats in the sidebar
+async function loadSidebarChats() {
+    try {
+        const response = await fetch('/api/user-chats/');
+        const chats = await response.json();
+        
+        const sidebarChats = document.getElementById('sidebar-chats');
+        sidebarChats.innerHTML = '';
+        
+        chats.forEach(chat => {
+            const chatElement = document.createElement('a');
+            chatElement.href = `/chat/room/${chat.group_name}`;
+            chatElement.className = 'discord-server-icon group relative';
+            chatElement.title = chat.groupchat_name || chat.group_name;
+            
+            // Set background color based on chat type or use initials
+            const bgColor = chat.is_private ? 'bg-purple-600 hover:bg-purple-700' : 'bg-blue-600 hover:bg-blue-700';
+            chatElement.className += ` ${bgColor}`;
+            
+            // Use first 2 letters of chat name as icon
+            const initials = (chat.groupchat_name || chat.group_name).substring(0, 2).toUpperCase();
+            chatElement.innerHTML = `
+                <span class="text-sm font-bold">${initials}</span>
+                <div class="absolute left-16 top-1/2 transform -translate-y-1/2 bg-black text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                    ${chat.groupchat_name || chat.group_name}
+                </div>
+            `;
+            
+            sidebarChats.appendChild(chatElement);
+        });
+    } catch (error) {
+        console.log('Could not load sidebar chats:', error);
+    }
+}
+
+// Load chats when page loads
+document.addEventListener('DOMContentLoaded', loadSidebarChats);
+
+// Reload chats when a new chat is created (you can trigger this from your forms)
+window.reloadSidebarChats = loadSidebarChats;
+</script>
