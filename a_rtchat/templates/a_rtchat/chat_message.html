@@ -1,37 +1,59 @@
-{% if message.author == user %}
-<li class="flex justify-end mb-4">
-    <div class="bg-green-200 rounded-l-lg rounded-tr-lg p-4 max-w-[75%]">
-        {% include 'a_rtchat/partials/message_content.html' %}
-    </div>
-    <div class="flex items-end">
-        <svg height="13" width="8" >
-            <path fill="#bbf7d0" d="M6.3,10.4C1.5,8.7,0.9,5.5,0,0.2L0,13l5.2,0C7,13,9.6,11.5,6.3,10.4z"/>
-        </svg>
-    </div>
-</li>
-{% else %}
-<li>
-    <div class="flex justify-start">
-        <div class="flex items-end mr-2" >
-            <a href="{% url 'profile' message.author.username %}">
-                <div class="relative">
-                    <div id="user-{{ message.author.id }}"></div>
-                    <img class="w-8 h-8 rounded-full object-cover" src="{{ message.author.profile.avatar }}" alt="Avatar" />
-                </div>
-            </a>
+<!-- Discord-style message -->
+<div class="discord-message group relative">
+    <div class="flex items-start space-x-3">
+        <!-- Avatar -->
+        <a href="{% url 'profile' message.author.username %}" class="flex-shrink-0">
+            <div class="relative">
+                <div id="user-{{ message.author.id }}"></div>
+                <img class="w-10 h-10 rounded-full object-cover" src="{{ message.author.profile.avatar }}" alt="{{ message.author.profile.name }}" />
+                <!-- Online status indicator -->
+                <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-gray-600 rounded-full"></div>
+            </div>
+        </a>
+        
+        <!-- Message Content -->
+        <div class="flex-1 min-w-0">
+            <!-- Message Header -->
+            <div class="flex items-baseline space-x-2 mb-1">
+                <span class="text-white font-medium hover:underline cursor-pointer">
+                    {{ message.author.profile.name }}
+                </span>
+                {% if message.author == user %}
+                    <span class="text-xs text-blue-400 font-medium">You</span>
+                {% endif %}
+                <span class="text-xs text-gray-500">
+                    {{ message.created|date:"M d, Y g:i A" }}
+                </span>
+            </div>
+            
+            <!-- Message Body -->
+            <div class="text-gray-300 break-words">
+                {% include 'a_rtchat/partials/message_content.html' %}
+            </div>
+            
+            <!-- Message Actions (visible on hover) -->
+            <div class="absolute top-0 right-4 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-700 rounded shadow-lg flex items-center space-x-1 px-2 py-1">
+                <!-- Add Reaction -->
+                <button class="p-1 hover:bg-gray-600 rounded text-gray-400 hover:text-white" title="Add Reaction">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-.464 5.535a1 1 0 10-1.415-1.414 3 3 0 01-4.242 0 1 1 0 00-1.415 1.414 5 5 0 007.072 0z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+                
+                <!-- Reply -->
+                <button class="p-1 hover:bg-gray-600 rounded text-gray-400 hover:text-white" title="Reply">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.707 3.293a1 1 0 010 1.414L5.414 7H11a7 7 0 017 7v2a1 1 0 11-2 0v-2a5 5 0 00-5-5H5.414l2.293 2.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+                
+                <!-- More Actions -->
+                <button class="p-1 hover:bg-gray-600 rounded text-gray-400 hover:text-white" title="More">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                    </svg>
+                </button>
+            </div>
         </div>
-        <div class="flex items-end" >
-            <svg height="13" width="8" >
-                <path fill="white" d="M2.8,13L8,13L8,0.2C7.1,5.5,6.5,8.7,1.7,10.4C-1.6,11.5,1,13,2.8,13z"></path>
-            </svg>
-        </div>
-        <div class="bg-white p-4 max-w-[75%] rounded-r-lg rounded-tl-lg">
-            {% include 'a_rtchat/partials/message_content.html' %}
-        </div>  
     </div>
-    <div class="text-sm font-light py-1 ml-10">
-        <span class="text-white">{{ message.author.profile.name }}</span> 
-        <span class="text-gray-400">@{{ message.author.username|lower }}</span>
-    </div>
-</li>
-{% endif %}
+</div>

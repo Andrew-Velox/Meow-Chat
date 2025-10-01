@@ -1,45 +1,183 @@
-{% extends "account/base_entrance.html" %}
+{% extends "layouts/blank.html" %}
 {% load allauth i18n %}
+
 {% block head_title %}
-    {% trans "Signup" %}
+    {% trans "Create an account" %}
 {% endblock head_title %}
+
 {% block content %}
-    {% element h1 %}
-        {% trans "Sign Up" %}
-    {% endelement %}
-    {% setvar link %}
-        <a href="{{ login_url }}">
-        {% endsetvar %}
-        {% setvar end_link %}
-        </a>
-    {% endsetvar %}
-    {% element p %}
-        {% blocktranslate %}Already have an account? Then please {{ link }}sign in{{ end_link }}.{% endblocktranslate %}
-    {% endelement %}
-    {% if not SOCIALACCOUNT_ONLY %}
-        {% url 'account_signup' as action_url %}
-        {% element form form=form method="post" action=action_url tags="entrance,signup" %}
-            {% slot body %}
-                {% csrf_token %}
-                {% element fields form=form unlabeled=True %}
-                {% endelement %}
-                {{ redirect_field }}
-            {% endslot %}
-            {% slot actions %}
-                {% element button tags="prominent,signup" type="submit" %}
-                    {% trans "Sign Up" %}
-                {% endelement %}
-            {% endslot %}
-        {% endelement %}
-    {% endif %}
-    {% if PASSKEY_SIGNUP_ENABLED %}
-        {% element hr %}
-        {% endelement %}
-        {% element button href=signup_by_passkey_url tags="prominent,signup,outline,primary" %}
-            {% trans "Sign up using a passkey" %}
-        {% endelement %}
-    {% endif %}
-    {% if SOCIALACCOUNT_ENABLED %}
-        {% include "socialaccount/snippets/login.html" with page_layout="entrance" %}
-    {% endif %}
+<div class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-900 via-purple-900 to-gray-900">
+    <!-- Background Pattern -->
+    <div class="absolute inset-0 opacity-5">
+        <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.1"><circle cx="7" cy="7" r="2"/><circle cx="27" cy="7" r="2"/><circle cx="47" cy="7" r="2"/><circle cx="7" cy="27" r="2"/><circle cx="27" cy="27" r="2"/><circle cx="47" cy="27" r="2"/><circle cx="7" cy="47" r="2"/><circle cx="27" cy="47" r="2"/><circle cx="47" cy="47" r="2"/></g></g></svg>');"></div>
+    </div>
+
+    <!-- Signup Card -->
+    <div class="relative w-full max-w-md">
+        <div class="bg-gray-800 rounded-lg shadow-2xl p-8 border border-gray-700">
+            <!-- Logo/Brand -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-full mb-4">
+                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"/>
+                        <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z"/>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-white mb-2">Create an account</h1>
+                <p class="text-gray-400">Join the conversation!</p>
+            </div>
+
+            {% if not SOCIALACCOUNT_ONLY %}
+                <!-- Signup Form -->
+                {% url 'account_signup' as action_url %}
+                <form method="post" action="{{ action_url }}" class="space-y-4">
+                    {% csrf_token %}
+                    
+                    <!-- Email Field -->
+                    {% if form.email %}
+                    <div>
+                        <label for="{{ form.email.id_for_label }}" class="block text-xs font-semibold text-gray-300 uppercase tracking-wide mb-2">
+                            Email <span class="text-red-400">*</span>
+                        </label>
+                        <input type="email" 
+                               name="{{ form.email.name }}" 
+                               id="{{ form.email.id_for_label }}"
+                               class="w-full bg-gray-900 text-white placeholder-gray-500 border border-gray-600 rounded px-3 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none transition-colors"
+                               placeholder="Enter your email"
+                               value="{{ form.email.value|default_if_none:'' }}"
+                               required>
+                        {% if form.email.errors %}
+                            <div class="mt-1">
+                                {% for error in form.email.errors %}
+                                    <p class="text-xs text-red-400">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Username Field -->
+                    {% if form.username %}
+                    <div>
+                        <label for="{{ form.username.id_for_label }}" class="block text-xs font-semibold text-gray-300 uppercase tracking-wide mb-2">
+                            Username <span class="text-red-400">*</span>
+                        </label>
+                        <input type="text" 
+                               name="{{ form.username.name }}" 
+                               id="{{ form.username.id_for_label }}"
+                               class="w-full bg-gray-900 text-white placeholder-gray-500 border border-gray-600 rounded px-3 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none transition-colors"
+                               placeholder="Choose a username"
+                               value="{{ form.username.value|default_if_none:'' }}"
+                               required>
+                        {% if form.username.errors %}
+                            <div class="mt-1">
+                                {% for error in form.username.errors %}
+                                    <p class="text-xs text-red-400">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Password Field -->
+                    {% if form.password1 %}
+                    <div>
+                        <label for="{{ form.password1.id_for_label }}" class="block text-xs font-semibold text-gray-300 uppercase tracking-wide mb-2">
+                            Password <span class="text-red-400">*</span>
+                        </label>
+                        <input type="password" 
+                               name="{{ form.password1.name }}" 
+                               id="{{ form.password1.id_for_label }}"
+                               class="w-full bg-gray-900 text-white placeholder-gray-500 border border-gray-600 rounded px-3 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none transition-colors"
+                               placeholder="Create a password"
+                               required>
+                        {% if form.password1.errors %}
+                            <div class="mt-1">
+                                {% for error in form.password1.errors %}
+                                    <p class="text-xs text-red-400">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Confirm Password Field -->
+                    {% if form.password2 %}
+                    <div>
+                        <label for="{{ form.password2.id_for_label }}" class="block text-xs font-semibold text-gray-300 uppercase tracking-wide mb-2">
+                            Confirm Password <span class="text-red-400">*</span>
+                        </label>
+                        <input type="password" 
+                               name="{{ form.password2.name }}" 
+                               id="{{ form.password2.id_for_label }}"
+                               class="w-full bg-gray-900 text-white placeholder-gray-500 border border-gray-600 rounded px-3 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none transition-colors"
+                               placeholder="Confirm your password"
+                               required>
+                        {% if form.password2.errors %}
+                            <div class="mt-1">
+                                {% for error in form.password2.errors %}
+                                    <p class="text-xs text-red-400">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {{ redirect_field }}
+
+                    <!-- Sign Up Button -->
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800">
+                        Create Account
+                    </button>
+
+                    <!-- Error Messages -->
+                    {% if form.non_field_errors %}
+                        <div class="bg-red-900 bg-opacity-50 border border-red-600 rounded p-3 mt-4">
+                            {% for error in form.non_field_errors %}
+                                <p class="text-sm text-red-300">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </form>
+            {% endif %}
+
+            <!-- Social Login -->
+            {% if SOCIALACCOUNT_ENABLED %}
+                <div class="mt-6">
+                    <div class="relative">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-gray-600"></div>
+                        </div>
+                        <div class="relative flex justify-center text-sm">
+                            <span class="px-2 bg-gray-800 text-gray-400">Or continue with</span>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        {% include "socialaccount/snippets/login.html" with page_layout="entrance" %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Login Link -->
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-400">
+                    Already have an account? 
+                    <a href="{{ login_url }}" class="text-indigo-400 hover:text-indigo-300 transition-colors font-medium ml-1">
+                        Log in
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Additional Info -->
+        <div class="mt-8 text-center">
+            <p class="text-xs text-gray-500">
+                By registering, you agree to our 
+                <a href="#" class="text-indigo-400 hover:text-indigo-300">Terms of Service</a> 
+                and 
+                <a href="#" class="text-indigo-400 hover:text-indigo-300">Privacy Policy</a>
+            </p>
+        </div>
+    </div>
+</div>
 {% endblock content %}
