@@ -1,0 +1,56 @@
+[
+{
+  "model": "auth.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$ZwRbCBZF0fkyDLRDC62bDk$769vzHa1buceekIr2I9uYDIoAXYG8jcmfaaH8KQg/Oo=",
+    "last_login": "2025-09-28T17:16:06.689Z",
+    "is_superuser": true,
+    "username": "mohabbat",
+    "first_name": "",
+    "last_name": "",
+    "email": "mohabbat.bd2020@gmail.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2025-09-28T10:17:49Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$7IbB6DyVytBlRqmILzbn6J$BZYwIfL2BfdoufQwa3PP95/YoOTZSpsN3qx0nwlWPNI=",
+    "last_login": "2025-09-30T06:38:46.552Z",
+    "is_superuser": false,
+    "username": "meow",
+    "first_name": "",
+    "last_name": "",
+    "email": "meow@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-09-28T10:20:41Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$tpObz4J71543Dv8mk1zuZv$KdNRhuWMKHObub+Zhid5Z5nj7fIpZXSMNms1H+PqHgY=",
+    "last_login": "2025-09-29T09:01:00.979Z",
+    "is_superuser": false,
+    "username": "andrew",
+    "first_name": "",
+    "last_name": "",
+    "email": "andrewvelox1@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-09-29T09:01:00.633Z",
+    "groups": [],
+    "user_permissions": []
+  }
+}
+]
