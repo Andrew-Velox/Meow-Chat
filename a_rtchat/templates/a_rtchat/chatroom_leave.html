@@ -1,11 +1,175 @@
-{% extends 'layouts/box.html' %}
-{% block content %}
-<h2>leave this Chatroom?</h2>
-<h2> "{{ chat_group.groupchat_name }}" </h2>
+{% extends 'base.html' %}
 
-<form method="POST">
-    {% csrf_token %}
-    <button type="submit" class="button-red mt-4">Yes, Leave</button>
-    <a class="button ml-1 button-gray" href="{{ request.META.HTTP_REFERER }}">Cancel</a>
-</form>
+{% block layout %}
+<div class="min-h-screen bg-discord-gray flex items-center justify-center p-4">
+    <div class="bg-discord-secondary rounded-lg shadow-2xl w-full max-w-md">
+        <!-- Header -->
+        <div class="px-6 py-4 border-b border-discord-border">
+            <div class="flex items-center justify-center mb-2">
+                <div class="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+            </div>
+            <h1 class="text-white text-xl font-semibold text-center">Leave Channel</h1>
+            <p class="text-discord-text-secondary text-sm text-center mt-1">
+                Are you sure you want to leave this channel?
+            </p>
+        </div>
+
+        <!-- Content -->
+        <div class="px-6 py-6">
+            <!-- Channel Info -->
+            <div class="text-center mb-6">
+                <div class="bg-discord-tertiary-bg rounded-lg p-4 mb-4">
+                    <div class="flex items-center justify-center space-x-3">
+                        <div class="w-12 h-12 bg-discord-primary rounded-full flex items-center justify-center">
+                            {% if chat_group.is_private %}
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                            {% else %}
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
+                            </svg>
+                            {% endif %}
+                        </div>
+                        <div class="text-left">
+                            <div class="text-white font-medium">
+                                {% if chat_group.groupchat_name %}
+                                {{ chat_group.groupchat_name }}
+                                {% else %}
+                                Direct Messages
+                                {% endif %}
+                            </div>
+                            <div class="text-discord-text-muted text-sm">
+                                {{ chat_group.members.count }} member{{ chat_group.members.count|pluralize }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-discord-text-secondary text-sm space-y-2">
+                    <div class="flex items-center justify-center space-x-2 text-yellow-400">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="font-medium">Warning</span>
+                    </div>
+                    <div>You will no longer receive messages from this channel and won't be able to see the conversation history.</div>
+                    {% if chat_group.admin == user %}
+                    <div class="text-red-400 font-medium">
+                        As the admin, leaving will transfer ownership to another member.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Leave Form -->
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+                
+                <div class="flex gap-3">
+                    <a href="{{ request.META.HTTP_REFERER }}" 
+                       class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition-colors text-center focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-discord-secondary">
+                        Cancel
+                    </a>
+                    
+                    <button type="submit" 
+                            class="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-discord-secondary">
+                        Leave Channel
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Footer -->
+        <div class="px-6 py-4 bg-discord-tertiary-bg rounded-b-lg border-t border-discord-border">
+            <div class="flex items-center justify-center space-x-2 text-xs text-discord-text-muted">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+                <span>You can rejoin this channel if invited again</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add smooth entrance animation
+        const modal = document.querySelector('.bg-discord-secondary');
+        modal.style.opacity = '0';
+        modal.style.transform = 'scale(0.95) translateY(-10px)';
+        
+        setTimeout(() => {
+            modal.style.transition = 'all 0.3s ease-out';
+            modal.style.opacity = '1';
+            modal.style.transform = 'scale(1) translateY(0)';
+        }, 10);
+        
+        // Add hover effects to buttons
+        const buttons = document.querySelectorAll('button, a[href]');
+        buttons.forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-1px)';
+            });
+            
+            button.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+        
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                window.history.back();
+            }
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                document.querySelector('form').submit();
+            }
+        });
+
+        // Add confirmation shake animation for extra emphasis
+        const leaveButton = document.querySelector('button[type="submit"]');
+        leaveButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Add shake animation
+            this.style.animation = 'shake 0.5s ease-in-out';
+            
+            setTimeout(() => {
+                if (confirm('Are you absolutely sure you want to leave this channel?')) {
+                    this.form.submit();
+                }
+                this.style.animation = '';
+            }, 500);
+        });
+    });
+</script>
+
+<style>
+    @keyframes shake {
+        0%, 100% { transform: translateX(0) translateY(-1px); }
+        25% { transform: translateX(-5px) translateY(-1px); }
+        75% { transform: translateX(5px) translateY(-1px); }
+    }
+    
+    /* Pulse animation for warning icon */
+    .text-yellow-400 svg {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.7;
+        }
+    }
+</style>
 {% endblock %}

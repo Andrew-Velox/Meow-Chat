@@ -42,6 +42,18 @@ class ChatroomConsumer(WebsocketConsumer):
         text_data_json = json.loads(text_data)
         body = text_data_json['body']
 
+        # Validate message body - don't send empty/blank messages
+        if not body or not body.strip():
+            # Silently ignore empty messages
+            return
+
+        # Trim whitespace from the message
+        body = body.strip()
+
+        # Additional validation - check if message is too long
+        if len(body) > 300:  # Based on your model's max_length
+            body = body[:300]
+
         message = GroupMessage.objects.create(
             body=body,
             author=self.user,

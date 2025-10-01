@@ -1,76 +1,279 @@
-{% extends 'layouts/box.html' %}
+{% extends 'base.html' %}
 
-{% block content %}
-
-<h1 class="mb-8">Account Settings</h1>
-
-<table class="w-full text-sm text-left text-gray-500">
-    <tbody>
-        <tr>
-            <th scope="row" class="pt-4 pb-1 text-base font-bold text-gray-900">
-                Email address
-            </th>
-            <td id="email-address" class="pt-4 pb-1 pl-4">
-                {% if user.email %}{{ user.email }}{% else %}No Email{% endif %}
-            </td>
-            <td class="pt-4 pb-1 pl-4">
-                <a id="email-edit" class="cursor-pointer font-medium text-blue-600 hover:underline"
-                    hx-get="{% url 'profile-emailchange' %}"
-                    hx-target="#email-address"
-                    hx-swap="innerHTML" >
-                    Edit
+{% block layout %}
+<div class="min-h-screen bg-discord-gray">
+    <!-- Header -->
+    <div class="bg-discord-secondary border-b border-discord-border">
+        <div class="max-w-4xl mx-auto px-6 py-4">
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'profile' user.username %}" class="p-2 hover:bg-discord-hover rounded-full transition-colors">
+                    <svg class="w-6 h-6 text-discord-text-secondary hover:text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+                    </svg>
                 </a>
-            </td>
-        </tr>
+                <div>
+                    <h1 class="text-white text-2xl font-semibold">Account Settings</h1>
+                    <p class="text-discord-text-muted text-sm">Manage your account preferences and security</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <tr class="border-b">
-            <th scope="row" class="pb-4 font-medium text-gray-900">  
-            </th>
-            <td class="pb-4 pl-4">
-                {% if user.emailaddress_set.first.verified %}
-                <span class="text-green-500">Verified</span>{% else %}
-                <span class="text-amber-500">Not verified</span>
-                {% endif %}
-            </td>
-            <td class="pb-4 pl-4">
-                <a href="{% url 'profile-emailverify' %}" class="font-medium text-blue-600 hover:underline">
-                    {% if not user.emailaddress_set.first.verified %}Verify{% endif %}
-                </a>
-            </td>
-        </tr>
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-6 py-8">
+        <div class="grid gap-6">
+            
+            <!-- Profile Overview Card -->
+            <div class="bg-discord-secondary rounded-lg border border-discord-border overflow-hidden">
+                <div class="px-6 py-4 border-b border-discord-border">
+                    <h2 class="text-white text-lg font-semibold flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-discord-primary" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                        </svg>
+                        Profile Information
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center space-x-4 mb-6">
+                        {% if user.profile.avatar %}
+                        <img src="{{ user.profile.avatar }}" class="w-16 h-16 rounded-full object-cover border-2 border-discord-primary" alt="Profile Avatar">
+                        {% else %}
+                        <div class="w-16 h-16 bg-discord-primary rounded-full flex items-center justify-center border-2 border-discord-primary">
+                            <span class="text-white text-xl font-semibold">{{ user.username|first|upper }}</span>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <div class="text-white text-xl font-semibold">{{ user.profile.name|default:user.username }}</div>
+                            <div class="text-discord-text-muted">@{{ user.username }}</div>
+                            <a href="{% url 'profile-edit' %}" class="inline-flex items-center mt-2 text-discord-primary hover:text-discord-secondary text-sm font-medium">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.828-2.828z"/>
+                                </svg>
+                                Edit Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <tr class="border-b">
-            <th scope="row" class="py-4 text-base font-bold text-gray-900">
-                Username
-            </th>
-            <td id="username" class="py-4 pl-4">
-                {{ user.username }}
-            </td>
-            <td class="py-4 pl-4">
-                <a id="username-edit" class="cursor-pointer font-medium text-blue-600 hover:underline"
-                    hx-get="{% url 'profile-usernamechange' %}"
-                    hx-target="#username"
-                    hx-swap="innerHTML" >
-                    Edit
-                </a>
-            </td>
-        </tr>
+            <!-- Account Details -->
+            <div class="bg-discord-secondary rounded-lg border border-discord-border overflow-hidden">
+                <div class="px-6 py-4 border-b border-discord-border">
+                    <h2 class="text-white text-lg font-semibold flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-discord-primary" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        Account Details
+                    </h2>
+                </div>
+                <div class="divide-y divide-discord-border">
+                    
+                    <!-- Email Section -->
+                    <div class="p-6">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2 bg-discord-tertiary-bg rounded-lg">
+                                        <svg class="w-5 h-5 text-discord-text-secondary" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="text-white font-medium">Email Address</div>
+                                        <div id="email-address" class="flex items-center space-x-2 mt-1">
+                                            <span class="text-discord-text-secondary">
+                                                {% if user.email %}{{ user.email }}{% else %}No Email{% endif %}
+                                            </span>
+                                            {% if user.emailaddress_set.first.verified %}
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                                </svg>
+                                                Verified
+                                            </span>
+                                            {% else %}
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                                </svg>
+                                                Not Verified
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <a id="email-edit" class="inline-flex items-center px-3 py-2 text-sm font-medium text-discord-primary hover:text-discord-secondary hover:bg-discord-hover rounded-md transition-colors cursor-pointer"
+                                   hx-get="{% url 'profile-emailchange' %}"
+                                   hx-target="#email-address"
+                                   hx-swap="innerHTML">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.828-2.828z"/>
+                                    </svg>
+                                    Edit
+                                </a>
+                                {% if not user.emailaddress_set.first.verified %}
+                                <a href="{% url 'profile-emailverify' %}" class="inline-flex items-center px-3 py-2 text-sm font-medium text-yellow-600 hover:text-yellow-500 hover:bg-discord-hover rounded-md transition-colors">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Verify
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
 
-        <tr class="">
-            <th scope="row" class="py-4 text-base font-bold text-gray-900">
-                Delete Account
-            </th>
-            <td class="py-4 pl-4">
-                Once deleted, account is gone. Forever.
-            </td>
-            <td class="py-4 pl-4">
-                <a href="{% url 'profile-delete' %}" class="font-medium text-red-600 hover:underline">
-                    Delete
-                </a>
-            </td>
-        </tr>
-    </tbody>
-</table>
+                    <!-- Username Section -->
+                    <div class="p-6">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2 bg-discord-tertiary-bg rounded-lg">
+                                        <svg class="w-5 h-5 text-discord-text-secondary" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="text-white font-medium">Username</div>
+                                        <div id="username" class="text-discord-text-secondary mt-1">
+                                            @{{ user.username }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <a id="username-edit" class="inline-flex items-center px-3 py-2 text-sm font-medium text-discord-primary hover:text-discord-secondary hover:bg-discord-hover rounded-md transition-colors cursor-pointer"
+                                   hx-get="{% url 'profile-usernamechange' %}"
+                                   hx-target="#username"
+                                   hx-swap="innerHTML">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.828-2.828z"/>
+                                    </svg>
+                                    Edit
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Danger Zone -->
+            <div class="bg-discord-secondary rounded-lg border border-red-600 overflow-hidden">
+                <div class="px-6 py-4 border-b border-red-600 bg-red-600 bg-opacity-10">
+                    <h2 class="text-red-400 text-lg font-semibold flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        Danger Zone
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2 bg-red-600 bg-opacity-20 rounded-lg">
+                                    <svg class="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"/>
+                                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 3a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="text-white font-medium">Delete Account</div>
+                                    <div class="text-discord-text-secondary text-sm mt-1">
+                                        Permanently delete your account and all associated data. This action cannot be undone.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <a href="{% url 'profile-delete' %}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-discord-secondary">
+                                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"/>
+                                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm5 2a1 1 0 00-1 1v3a1 1 0 002 0V8a1 1 0 00-1-1zm3 1a1 1 0 012 0v3a1 1 0 11-2 0V8z" clip-rule="evenodd"/>
+                                </svg>
+                                Delete Account
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add smooth animations to cards
+        const cards = document.querySelectorAll('.bg-discord-secondary');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.4s ease-out';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+
+        // Add hover effects to interactive elements
+        const buttons = document.querySelectorAll('a[class*="hover"]');
+        buttons.forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-1px)';
+            });
+            
+            button.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Add click ripple effect
+        const clickableElements = document.querySelectorAll('a, button');
+        clickableElements.forEach(element => {
+            element.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                ripple.className = 'ripple';
+                
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+    });
+</script>
+
+<style>
+    .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: scale(0);
+        animation: ripple 0.6s linear;
+        pointer-events: none;
+    }
+
+    @keyframes ripple {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+</style>
 {% endblock %}

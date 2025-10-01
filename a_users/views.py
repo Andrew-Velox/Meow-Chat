@@ -61,16 +61,46 @@ def profile_emailchange(request):
                 messages.warning(request, f'{email} is already in use.')
                 return redirect('profile-settings')
             
-            form.save() 
+            # Check if the new email is the same as current email
+            if email == request.user.email:
+                messages.info(request, 'This is already your current email address.')
+                return redirect('profile-settings')
             
-            # Then Signal updates emailaddress and set verified to False
-            
-            # Then send confirmation email 
             try:
-                email_address = EmailAddress.objects.get(user=request.user, email=email)
-                get_adapter(request).send_confirmation_mail(request, email_address.emailconfirmation_set.create(), signup=False)
-            except EmailAddress.DoesNotExist:
-                pass
+                # Save the form (updates user.email)
+                form.save() 
+                
+                # Then Signal updates emailaddress and set verified to False
+                
+                # Then send confirmation email 
+                try:
+                    email_address = EmailAddress.objects.get(user=request.user, email=email)
+                    
+                    # Delete any existing email confirmations for this email address
+                    email_address.emailconfirmation_set.all().delete()
+                    
+                    # Create a new confirmation
+                    email_confirmation = email_address.emailconfirmation_set.create()
+                    get_adapter(request).send_confirmation_mail(request, email_confirmation, signup=False)
+                    
+                    messages.success(request, f'Email updated successfully! Confirmation email sent to {email}. Please check your inbox to verify your new email address.')
+                except EmailAddress.DoesNotExist:
+                    # If EmailAddress doesn't exist, create it
+                    email_address = EmailAddress.objects.create(
+                        user=request.user, 
+                        email=email, 
+                        verified=False, 
+                        primary=True
+                    )
+                    email_confirmation = email_address.emailconfirmation_set.create()
+                    get_adapter(request).send_confirmation_mail(request, email_confirmation, signup=False)
+                    
+                    messages.success(request, f'Email updated successfully! Confirmation email sent to {email}. Please check your inbox to verify your new email address.')
+                except Exception as e:
+                    messages.error(request, 'Email updated, but failed to send confirmation email. Please try verifying your email manually from the settings page.')
+                    
+            except Exception as e:
+                messages.error(request, 'Failed to update email address. Please try again.')
             
             return redirect('profile-settings')
         else:
