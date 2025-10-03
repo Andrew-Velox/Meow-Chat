@@ -24,7 +24,11 @@
                 </a>
                 {% endif %}
             {% else %}
-                <h2 class="text-white font-semibold">Direct Messages</h2>
+                {% if other_user %}
+                    <h2 class="text-white font-semibold">{{ other_user.profile.name }}</h2>
+                {% else %}
+                    <h2 class="text-white font-semibold">Direct Messages</h2>
+                {% endif %}
             {% endif %}
         </div>
 

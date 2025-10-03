@@ -47,18 +47,53 @@ async function loadSidebarChats() {
             const chatElement = document.createElement('a');
             chatElement.href = `/chat/room/${chat.group_name}`;
             chatElement.className = 'discord-server-icon group relative';
-            chatElement.title = chat.groupchat_name || chat.group_name;
             
-            // Set background color based on chat type or use initials
-            const bgColor = chat.is_private ? 'bg-purple-600 hover:bg-purple-700' : 'bg-blue-600 hover:bg-blue-700';
-            chatElement.className += ` ${bgColor}`;
+            // Determine display name and title based on chat type
+            let displayName, tooltipName, initials, contentHTML;
             
-            // Use first 2 letters of chat name as icon
-            const initials = (chat.groupchat_name || chat.group_name).substring(0, 2).toUpperCase();
+            if (chat.is_private && chat.other_user_name) {
+                // For private chats, use the other user's name
+                displayName = chat.other_user_name;
+                tooltipName = chat.other_user_name;
+                initials = chat.other_user_name.substring(0, 2).toUpperCase();
+                
+                // Use profile image if available, otherwise use initials
+                if (chat.other_user_avatar) {
+                    contentHTML = `<img src="${chat.other_user_avatar}" class="w-12 h-12 rounded-full object-cover" alt="${chat.other_user_name}">`;
+                    chatElement.className += ' bg-transparent hover:bg-gray-600 p-0 overflow-hidden';
+                } else {
+                    contentHTML = `<span class="text-sm font-bold">${initials}</span>`;
+                    chatElement.className += ' bg-purple-600 hover:bg-purple-700';
+                }
+            } else if (chat.groupchat_name) {
+                // For group chats, use the group chat name
+                displayName = chat.groupchat_name;
+                tooltipName = chat.groupchat_name;
+                initials = chat.groupchat_name.substring(0, 2).toUpperCase();
+                
+                // Use group banner if available, otherwise use initials
+                if (chat.banner_url) {
+                    contentHTML = `<img src="${chat.banner_url}" class="w-12 h-12 rounded-full object-cover" alt="${chat.groupchat_name}">`;
+                    chatElement.className += ' bg-transparent hover:bg-gray-600 p-0 overflow-hidden';
+                } else {
+                    contentHTML = `<span class="text-sm font-bold">${initials}</span>`;
+                    chatElement.className += ' bg-blue-600 hover:bg-blue-700';
+                }
+            } else {
+                // Fallback to group name
+                displayName = chat.group_name;
+                tooltipName = chat.group_name;
+                initials = chat.group_name.substring(0, 2).toUpperCase();
+                contentHTML = `<span class="text-sm font-bold">${initials}</span>`;
+                chatElement.className += ' bg-gray-600 hover:bg-gray-700';
+            }
+            
+            chatElement.title = tooltipName;
+            
             chatElement.innerHTML = `
-                <span class="text-sm font-bold">${initials}</span>
+                ${contentHTML}
                 <div class="absolute left-16 top-1/2 transform -translate-y-1/2 bg-black text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                    ${chat.groupchat_name || chat.group_name}
+                    ${tooltipName}
                 </div>
             `;
             

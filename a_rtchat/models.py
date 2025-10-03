@@ -10,9 +10,16 @@ class ChatGroup(models.Model):
     users_online = models.ManyToManyField(User, related_name='online_in_groups', blank=True)
     members = models.ManyToManyField(User, related_name='chat_groups', blank=True)
     is_private = models.BooleanField(default=False)
+    banner = models.ImageField(upload_to='group_banners/', null=True, blank=True)
 
     def __str__(self):
         return self.group_name
+
+    @property
+    def banner_url(self):
+        if self.banner:
+            return self.banner.url
+        return None
 
 
 class GroupMessage(models.Model):

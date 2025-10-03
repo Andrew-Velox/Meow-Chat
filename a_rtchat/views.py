@@ -78,7 +78,7 @@ def create_groupchat(request):
     form = NewGroupForm()
 
     if request.method == 'POST':
-        form = NewGroupForm(request.POST)
+        form = NewGroupForm(request.POST, request.FILES)
         if form.is_valid():
             new_groupchat = form.save(commit=False)
             new_groupchat.admin = request.user
@@ -102,15 +102,31 @@ def chatroom_edit_view(request, chatroom_name):
     form = ChatRoomEditForm(instance=chat_group)
 
     if request.method == 'POST':
-        form = ChatRoomEditForm(request.POST, instance=chat_group)
-        if form.is_valid():
-            form.save()
+        action = request.POST.get('action', 'update')
+        
+        if action == 'remove_members':
+            # Handle member removal
             remove_members = request.POST.getlist('remove_members')
+            removed_count = 0
             for member_id in remove_members:
-                member = User.objects.get(id=member_id)
-                if member != chat_group.admin:
-                    chat_group.members.remove(member)
-            return redirect('chatroom', chatroom_name)
+                try:
+                    member = User.objects.get(id=member_id)
+                    if member != chat_group.admin and member in chat_group.members.all():
+                        chat_group.members.remove(member)
+                        removed_count += 1
+                except User.DoesNotExist:
+                    pass
+            
+            if removed_count > 0:
+                messages.success(request, f'Successfully removed {removed_count} member(s) from the server.')
+            return redirect('edit-chatroom', chatroom_name)
+        else:
+            # Handle server info update
+            form = ChatRoomEditForm(request.POST, request.FILES, instance=chat_group)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Server settings updated successfully.')
+                return redirect('edit-chatroom', chatroom_name)
         
 
     context = {
@@ -184,11 +200,29 @@ def user_chats_api(request):
     
     chats_data = []
     for chat in user_chats:
-        chats_data.append({
+        chat_data = {
             'group_name': chat.group_name,
             'groupchat_name': chat.groupchat_name,
             'is_private': chat.is_private,
             'member_count': chat.members.count(),
-        })
+            'banner_url': chat.banner_url,  # Include banner URL for group chats
+        }
+        
+        # For private chats, include the other user's information
+        if chat.is_private:
+            other_user = None
+            for member in chat.members.all():
+                if member != request.user:
+                    other_user = member
+                    break
+            
+            if other_user:
+                chat_data.update({
+                    'other_user_username': other_user.username,
+                    'other_user_name': other_user.profile.name if hasattr(other_user, 'profile') else other_user.username,
+                    'other_user_avatar': other_user.profile.avatar if hasattr(other_user, 'profile') else None,
+                })
+        
+        chats_data.append(chat_data)
     
     return JsonResponse(chats_data, safe=False)

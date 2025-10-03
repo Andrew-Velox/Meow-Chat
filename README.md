@@ -127,6 +127,17 @@ A modern, feature-rich real-time chat application built with Django and WebSocke
    - Open your browser and navigate to `http://127.0.0.1:8000`
    - Create an account or use existing credentials
 
+## 🧪 Demo Account
+
+Want to try the application without registering? Use these demo credentials:
+
+```
+Username: user1
+Password: demo1234
+```
+
+> **Note:** This is a shared demo account for testing purposes. Feel free to explore all features, create chat rooms, and test the real-time messaging functionality!
+
 ## 📁 Project Structure
 
 ```
@@ -344,7 +355,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Issues**: [GitHub Issues](https://github.com/Andrew-Velox/Meow-Chat/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Andrew-Velox/Meow-Chat/discussions)
-- **Email**: mohabbat@example.com
+- **Email**: mohabbat.bd2020@gmail.com
 
 ## 🚀 Future Enhancements
 

@@ -1,34 +1,269 @@
-{% extends 'layouts/box.html' %}
+{% extends 'layouts/blank.html' %}
 
 {% block content %}
-    <h2>Edit Chat</h2>
-    <form method="post">
-    {% csrf_token %}
-    {{ form }}
-
-    <div class="my-4">
-    <h2>Members</h2>
-    {% for member in chat_group.members.all %}
-    <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2 py-2">
-            <img class="w-14 h-14 rounded-full object-cover" src="{{ member.profile.avatar }}" />
-            <div>
-                <span class="font-bold">{{ member.profile.name }}</span> 
-                <span class="text-sm font-light text-gray-600">@{{ member.username }}</span>
+<div class="min-h-screen bg-gray-900 p-4">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'chatroom' chat_group.group_name %}" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                </a>
+                <h1 class="text-2xl font-bold text-white">Server Settings</h1>
             </div>
         </div>
-        
-        {% if member != chat_group.admin %}
-        <div class="inline-block pr-4">
-            <input type="checkbox" name="remove_members" value="{{ member.id }}" class="relative p-5 cursor-pointer appearance-none rounded-md border after:absolute after:left-0 after:top-0 after:h-full after:w-full after:bg-[url('https://img.icons8.com/ffffff/32/multiply.png')] after:bg-center checked:bg-red-500 hover:ring hover:ring-gray-300 focus:outline-none" />
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Sidebar - Navigation -->
+            <div class="lg:col-span-1">
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Server Settings</h3>
+                    <nav class="space-y-1">
+                        <a href="#overview" class="flex items-center px-3 py-2 text-sm text-white bg-indigo-600 rounded-md">
+                            <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                            </svg>
+                            Overview
+                        </a>
+                        <a href="#members" class="flex items-center px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded-md">
+                            <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                            </svg>
+                            Members
+                        </a>
+                    </nav>
+
+                    <!-- Danger Zone -->
+                    <div class="mt-8 pt-6 border-t border-gray-700">
+                        <h3 class="text-xs font-semibold text-red-400 uppercase tracking-wide mb-3">Danger Zone</h3>
+                        <a href="{% url 'delete-chatroom' chat_group.group_name %}" class="flex items-center px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-md">
+                            <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                            Delete Server
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Overview Section -->
+                <div id="overview" class="bg-gray-800 rounded-lg">
+                    <div class="p-6 border-b border-gray-700">
+                        <h2 class="text-xl font-semibold text-white">Server Overview</h2>
+                        <p class="text-sm text-gray-400 mt-1">Manage your server's basic information</p>
+                    </div>
+                    
+                    <form method="post" enctype="multipart/form-data" class="p-6 space-y-6">
+                        {% csrf_token %}
+                        
+                        <!-- Server Icon/Banner -->
+                        <div class="flex items-center space-x-6">
+                            <div class="relative">
+                                {% if chat_group.banner_url %}
+                                    <img src="{{ chat_group.banner_url }}" class="w-20 h-20 rounded-full object-cover bg-gray-700" alt="Server Icon">
+                                {% else %}
+                                    <div class="w-20 h-20 bg-indigo-600 rounded-full flex items-center justify-center">
+                                        <span class="text-2xl font-bold text-white">{{ chat_group.groupchat_name|slice:":2"|upper }}</span>
+                                    </div>
+                                {% endif %}
+                                <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-gray-900 rounded-full flex items-center justify-center border-2 border-gray-800">
+                                    <svg class="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <label for="{{ form.banner.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                    Server Icon
+                                </label>
+                                {{ form.banner }}
+                                <p class="text-xs text-gray-400 mt-1">We recommend an image of at least 128x128 for the server.</p>
+                            </div>
+                        </div>
+
+                        <!-- Server Name -->
+                        <div>
+                            <label for="{{ form.groupchat_name.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                Server Name
+                            </label>
+                            {{ form.groupchat_name }}
+                            {% if form.groupchat_name.errors %}
+                                <div class="mt-1">
+                                    {% for error in form.groupchat_name.errors %}
+                                        <p class="text-sm text-red-400">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Server ID (Read-only) -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">
+                                Server ID
+                            </label>
+                            <div class="bg-gray-700 px-3 py-2 rounded text-gray-400 text-sm font-mono">
+                                {{ chat_group.group_name }}
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1">This is your server's unique identifier.</p>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex justify-end space-x-3 pt-4 border-t border-gray-700">
+                            <a href="{% url 'chatroom' chat_group.group_name %}" class="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">
+                                Cancel
+                            </a>
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded text-sm font-medium transition-colors">
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Members Section -->
+                <div id="members" class="bg-gray-800 rounded-lg">
+                    <div class="p-6 border-b border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-xl font-semibold text-white">Members</h2>
+                                <p class="text-sm text-gray-400 mt-1">{{ chat_group.members.count }} members</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-6">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="remove_members">
+                            {{ form.groupchat_name.as_hidden }}
+                            
+                            <div class="space-y-3">
+                                {% for member in chat_group.members.all %}
+                                <div class="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg hover:bg-gray-700 transition-colors">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="relative">
+                                            <img src="{{ member.profile.avatar }}" class="w-10 h-10 rounded-full object-cover">
+                                            {% if member in chat_group.users_online.all %}
+                                                <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-gray-700 rounded-full"></div>
+                                            {% else %}
+                                                <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-gray-500 border-2 border-gray-700 rounded-full"></div>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-white font-medium">{{ member.profile.name }}</span>
+                                                {% if member == chat_group.admin %}
+                                                    <span class="bg-indigo-600 text-white px-2 py-0.5 rounded-full text-xs font-medium">Admin</span>
+                                                {% endif %}
+                                            </div>
+                                            <span class="text-sm text-gray-400">@{{ member.username }}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if member != chat_group.admin %}
+                                    <div class="flex items-center space-x-2">
+                                        <button type="button" class="text-gray-400 hover:text-red-400 p-1 rounded hover:bg-red-900/20 transition-colors" onclick="toggleRemoveMember({{ member.id }})">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                            </svg>
+                                        </button>
+                                        <input type="checkbox" name="remove_members" value="{{ member.id }}" id="remove_{{ member.id }}" class="hidden">
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Remove Members Button (hidden by default) -->
+                            <div id="remove-actions" class="hidden mt-4 p-4 bg-red-900/20 border border-red-800 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-red-300 font-medium">Remove Selected Members</p>
+                                        <p class="text-red-400 text-sm">This action cannot be undone.</p>
+                                    </div>
+                                    <div class="space-x-2">
+                                        <button type="button" onclick="cancelRemoveMembers()" class="px-3 py-1 text-sm text-gray-400 hover:text-white transition-colors">
+                                            Cancel
+                                        </button>
+                                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded text-sm font-medium transition-colors">
+                                            Remove Members
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-        {% endif %}
-    </div> 
-    {% endfor %}
     </div>
+</div>
 
-    <button class="mt-2" type="submit">Update</button>
-</form>
+<script>
+let selectedMembers = new Set();
 
-<a href="{% url 'delete-chatroom' chat_group.group_name %}" class="inline-block flex justify-end mt-4 text-gray-400 hover:text-red-500" >Delete Chatroom</a>
+function toggleRemoveMember(memberId) {
+    const checkbox = document.getElementById(`remove_${memberId}`);
+    const removeActions = document.getElementById('remove-actions');
+    
+    if (selectedMembers.has(memberId)) {
+        selectedMembers.delete(memberId);
+        checkbox.checked = false;
+    } else {
+        selectedMembers.add(memberId);
+        checkbox.checked = true;
+    }
+    
+    if (selectedMembers.size > 0) {
+        removeActions.classList.remove('hidden');
+    } else {
+        removeActions.classList.add('hidden');
+    }
+    
+    // Update button appearance
+    updateMemberButtons();
+}
+
+function cancelRemoveMembers() {
+    selectedMembers.clear();
+    document.getElementById('remove-actions').classList.add('hidden');
+    
+    // Uncheck all checkboxes
+    document.querySelectorAll('input[name="remove_members"]').forEach(cb => {
+        cb.checked = false;
+    });
+    
+    updateMemberButtons();
+}
+
+function updateMemberButtons() {
+    document.querySelectorAll('input[name="remove_members"]').forEach(cb => {
+        const button = cb.previousElementSibling;
+        if (cb.checked) {
+            button.classList.add('text-red-400', 'bg-red-900/20');
+            button.classList.remove('text-gray-400');
+        } else {
+            button.classList.remove('text-red-400', 'bg-red-900/20');
+            button.classList.add('text-gray-400');
+        }
+    });
+}
+
+// Smooth scrolling for navigation
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+</script>
 {% endblock %}
