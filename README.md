@@ -42,7 +42,29 @@ A modern, feature-rich real-time chat application built with Django and WebSocke
 - **Admin Controls**: Channel management and moderation
 - **Responsive Design**: Mobile-friendly interface
 
-## 🛠️ Technology Stack
+## � Screenshots
+
+### 🏠 **Homepage & Main Interface**
+![Homepage](Images/Homepage.png)
+*Clean Discord-style interface with sidebar navigation and chat area*
+
+### 💬 **Group Chat Experience** 
+![Group Chat](Images/Other%20Group.png)
+*Real-time group messaging with member list and online status indicators*
+
+### 💌 **Private Messaging**
+![Private Messages](Images/private%20message.png)
+*One-on-one private conversations with user profiles and status*
+
+### 🎛️ **Server Management**
+![Creating Server](Images/Creating%20Server.png)
+*Easy server creation with custom names and banner uploads*
+
+### ⚙️ **Server Administration**
+![Editing Server](Images/Editing%20Server.png)
+*Comprehensive server settings and member management interface*
+
+## �🛠️ Technology Stack
 
 ### Backend
 - **Django 5.2+** - Web framework
