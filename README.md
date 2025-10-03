@@ -42,7 +42,7 @@ A modern, feature-rich real-time chat application built with Django and WebSocke
 - **Admin Controls**: Channel management and moderation
 - **Responsive Design**: Mobile-friendly interface
 
-## � Screenshots
+## ✨ Screenshots
 
 ### 🏠 **Homepage & Main Interface**
 ![Homepage](Images/Homepage.png)
