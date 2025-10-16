@@ -1,0 +1,294 @@
+{% extends 'layouts/blank.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="flex h-full overflow-hidden">
+    <!-- Server/Groups Sidebar -->
+    {% include 'includes/sidebar.html' %}
+    
+    <!-- Main Chat Area -->
+    <div class="flex-1 flex flex-col" style="background-color: var(--discord-secondary-bg);">
+        
+        <!-- Chat Header -->
+        <div class="discord-header flex items-center justify-between px-4 py-3 border-b" style="border-color: var(--discord-border);">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-pink-500">
+                    <img src="{% static 'images/ai_gf.gif' %}" alt="AI GF" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <h2 class="text-white font-semibold text-lg flex items-center">
+                        AI GF 
+                        <span class="ml-2 text-xs bg-pink-500 text-white px-2 py-0.5 rounded-full">AI</span>
+                    </h2>
+                    <p class="text-xs" style="color: var(--discord-text-secondary);">Your personal AI companion 💕</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <button onclick="clearChat()" class="p-2 rounded hover:bg-gray-700 text-gray-400 hover:text-white transition" title="Clear Chat">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Messages Area -->
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+            
+            <!-- Welcome Message -->
+                <div class="flex items-center justify-center h-full">
+                    <div class="text-center max-w-md">
+                        <div class="w-20 h-20 rounded-full overflow-hidden border-4 border-pink-500 mx-auto mb-4">
+                            <img src="{% static 'images/ai_gf.gif' %}" alt="AI GF" class="w-full h-full object-cover">
+                        </div>
+                        <h3 class="text-white font-semibold text-xl mb-2">Welcome to AI GF! 💕</h3>
+                        <p class="text-gray-400 mb-4">Your personal AI companion is here to chat with you. Say hello and start a conversation!</p>
+                    </div>
+                </div>
+                {% for message in chat_messages %}
+                    {% if message.is_user_message %}
+                        <!-- User Message -->
+                        <div class="discord-message">
+                            <div class="flex justify-end">
+                                <div class="max-w-md">
+                                    <div class="bg-indigo-600 text-white rounded-lg px-4 py-2 shadow-lg">
+                                        <p class="break-words">{{ message.message }}</p>
+                                    </div>
+                                    <p class="text-xs mt-1 text-right" style="color: var(--discord-text-muted);">{{ message.created|date:"g:i A" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <!-- AI Message -->
+                        <div class="discord-message">
+                            <div class="flex justify-start">
+                                <div class="max-w-md">
+                                    <div class="flex items-start space-x-2">
+                                        <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-pink-500 flex-shrink-0">
+                                            <img src="{% static 'images/ai_gf.gif' %}" alt="AI GF" class="w-full h-full object-cover">
+                                        </div>
+                                        <div>
+                                            <div class="bg-gray-700 text-white rounded-lg px-4 py-2 shadow-lg">
+                                                <p class="break-words">{{ message.message }}</p>
+                                            </div>
+                                            <p class="text-xs mt-1" style="color: var(--discord-text-muted);">{{ message.created|date:"g:i A" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            
+        </div>
+        
+        <!-- Message Input -->
+        <div class="p-4 border-t" style="background-color: var(--discord-secondary-bg); border-color: var(--discord-border);">
+            <!-- Typing Indicator (Above Input) -->
+            <div id="typing-indicator" class="hidden mb-3 flex items-center space-x-2 text-gray-400 text-sm">
+                <div class="flex space-x-1">
+                    <div class="w-2 h-2 bg-pink-500 rounded-full animate-bounce" style="animation-delay: 0s;"></div>
+                    <div class="w-2 h-2 bg-pink-500 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+                    <div class="w-2 h-2 bg-pink-500 rounded-full animate-bounce" style="animation-delay: 0.4s;"></div>
+                </div>
+                <span>AI GF is typing...</span>
+            </div>
+            
+            <form id="ai-chat-form" class="flex items-center space-x-2">
+                {% csrf_token %}
+                <input 
+                    type="text" 
+                    id="ai-message-input"
+                    name="message"
+                    placeholder="Message AI GF..." 
+                    class="flex-1 px-4 py-3 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    style="background-color: var(--discord-input);"
+                    autocomplete="off"
+                >
+                <button 
+                    type="submit"
+                    id="send-button"
+                    class="bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center space-x-2"
+                >
+                    <span>Send</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const chatMessages = document.getElementById('chat-messages');
+    const aiChatForm = document.getElementById('ai-chat-form');
+    const messageInput = document.getElementById('ai-message-input');
+    const sendButton = document.getElementById('send-button');
+    const typingIndicator = document.getElementById('typing-indicator');
+    
+    // Auto scroll to bottom
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // Scroll to bottom on load
+    scrollToBottom();
+    
+    // Handle form submission
+    aiChatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const message = messageInput.value.trim();
+        if (!message) return;
+        
+        // Clear input immediately
+        messageInput.value = '';
+        
+        // Show user message immediately with beautiful animation
+        const userMessageDiv = document.createElement('div');
+        userMessageDiv.className = 'discord-message message-enter';
+        const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        userMessageDiv.innerHTML = `
+            <div class="flex justify-end">
+                <div class="max-w-md">
+                    <div class="bg-indigo-600 text-white rounded-lg px-4 py-2 shadow-lg">
+                        <p class="break-words">${message}</p>
+                    </div>
+                    <p class="text-xs mt-1 text-right" style="color: var(--discord-text-muted);">${now}</p>
+                </div>
+            </div>
+        `;
+        chatMessages.appendChild(userMessageDiv);
+        
+        // Scroll to bottom with smooth animation
+        setTimeout(() => {
+            chatMessages.scrollTo({
+                top: chatMessages.scrollHeight,
+                behavior: 'smooth'
+            });
+        }, 50);
+        
+        // Disable input while sending
+        messageInput.disabled = true;
+        sendButton.disabled = true;
+        
+        // Show typing indicator after a short delay (feels more natural)
+        setTimeout(() => {
+            typingIndicator.classList.remove('hidden');
+        }, 300);
+        
+        try {
+            const formData = new FormData();
+            formData.append('message', message);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            
+            const response = await fetch('{% url "send-ai-message" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Add AI message with beautiful slide-in from left animation
+                const aiMessageDiv = document.createElement('div');
+                aiMessageDiv.className = 'discord-message message-enter-left';
+                aiMessageDiv.innerHTML = `
+                    <div class="flex justify-start">
+                        <div class="max-w-md">
+                            <div class="flex items-start space-x-2">
+                                <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-pink-500 flex-shrink-0">
+                                    <img src="{% static 'images/ai_gf.gif' %}" alt="AI GF" class="w-full h-full object-cover">
+                                </div>
+                                <div>
+                                    <div class="bg-gray-700 text-white rounded-lg px-4 py-2 shadow-lg">
+                                        <p class="break-words">${data.ai_message.message}</p>
+                                    </div>
+                                    <p class="text-xs mt-1" style="color: var(--discord-text-muted);">${data.ai_message.created}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                chatMessages.appendChild(aiMessageDiv);
+                
+                // Smooth scroll to bottom with delay for animation
+                setTimeout(() => {
+                    chatMessages.scrollTo({
+                        top: chatMessages.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }, 50);
+            } else {
+                alert('Error: ' + (data.error || 'Failed to send message'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to send message. Please try again.');
+        } finally {
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+            typingIndicator.classList.add('hidden');
+            messageInput.focus();
+        }
+    });
+    
+    // Clear chat function
+    async function clearChat() {
+        if (!confirm('Are you sure you want to clear your chat history?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch('{% url "clear-ai-chat" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Failed to clear chat');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to clear chat');
+        }
+    }
+</script>
+
+<style>
+    @keyframes bounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-0.5rem);
+        }
+    }
+    
+    .animate-bounce {
+        animation: bounce 1s infinite;
+    }
+    #chat-messages {
+        overflow-y: auto;
+        overflow-x: hidden; /* hides horizontal scrollbar instantly */
+        scrollbar-width: thin;
+        scrollbar-color: #444 transparent; /* optional, for aesthetic */
+        scroll-behavior: smooth;
+        transition: all 0.2s ease-out;
+    }
+
+</style>
+{% endblock %}

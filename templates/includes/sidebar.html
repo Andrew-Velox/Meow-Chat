@@ -1,4 +1,5 @@
 <!-- Discord-style Server/Chat Sidebar -->
+{% load static %}
 <div class="w-16 flex-shrink-0 discord-sidebar flex flex-col items-center py-3 space-y-3">
     <!-- Home/Direct Messages Button -->
     <a href="/" class="discord-server-icon bg-indigo-500 hover:bg-indigo-600 group relative" title="Home">
@@ -8,6 +9,32 @@
         <!-- Tooltip -->
         <div class="absolute left-16 top-1/2 transform -translate-y-1/2 bg-black text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
             Home
+        </div>
+    </a>
+    
+    <!-- Travel Assistant Chat Button -->
+    <a href="{% url 'travel-chat' %}" class="discord-server-icon bg-transparent hover:bg-gray-600 p-0 overflow-hidden group relative border-2 border-purple-500 hover:border-purple-400" title="Travel Assistant">
+        <img src="{% static 'images/travel_ai.gif' %}" alt="Travel Assistant" class="w-12 h-12 object-cover">
+        <!-- Tooltip -->
+        <div class="absolute left-16 top-1/2 transform -translate-y-1/2 bg-black text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+            Travel Assistant 🤖
+        </div>
+    </a>
+    <!-- Helping Assistant Chat Button -->
+    <a href="{% url 'helper-chat' %}" class="discord-server-icon bg-transparent hover:bg-gray-600 p-0 overflow-hidden group relative border-2 border-blue-500 hover:border-blue-400" title="Helping Assistant">
+        <img src="{% static 'images/ai_assistant.gif' %}" alt="Helping Assistant" class="w-12 h-12 object-cover">
+        <!-- Tooltip -->
+        <div class="absolute left-16 top-1/2 transform -translate-y-1/2 bg-black text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+            Helping Assistant 🤖
+        </div>
+    </a>
+    
+    <!-- AI GF Chat Button -->
+    <a href="{% url 'ai-chat' %}" class="discord-server-icon bg-transparent hover:bg-gray-600 p-0 overflow-hidden group relative border-2 border-pink-500 hover:border-pink-400" title="AI GF">
+        <img src="{% static 'images/ai_gf.gif' %}" alt="AI GF" class="w-12 h-12 object-cover">
+        <!-- Tooltip -->
+        <div class="absolute left-16 top-1/2 transform -translate-y-1/2 bg-black text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+            AI GF 💕
         </div>
     </a>
     

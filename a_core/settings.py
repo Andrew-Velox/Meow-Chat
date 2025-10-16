@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'a_home',
     'a_users',
     'a_rtchat',
+    'a_aichat',
     
     # Third party
     'django_browser_reload',
