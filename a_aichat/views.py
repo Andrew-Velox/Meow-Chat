@@ -5,13 +5,16 @@ from .models import AIChat, HelperChat,TravelChat
 import requests
 import json
 import logging
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 logger = logging.getLogger(__name__)
 
-AIGF_WEBHOOK_URL = "http://localhost:5678/webhook/5b4ab579-2dc4-44a4-88b3-433eb2620ace"
-HELPER_WEBHOOK_URL = "http://localhost:5678/webhook/046799b7-3aa8-4fe3-9176-3be752759db9"
+AIGF_WEBHOOK_URL = os.environ.get('AIGF_WEBHOOK_URL', '')
+HELPER_WEBHOOK_URL = os.environ.get('HELPER_WEBHOOK_URL', '')
+TRAVEL_WEBHOOK_URL = os.environ.get('TRAVEL_WEBHOOK_URL', '')
 
-TRAVEL_WEBHOOK_URL = "http://localhost:5678/webhook/173fa69d-d330-4682-b2b5-acace959c2e7"
 
 @login_required
 def ai_chat_view(request):
