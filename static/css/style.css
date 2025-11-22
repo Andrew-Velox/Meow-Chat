@@ -1,0 +1,74 @@
+/* Voice Recording Pulse Animation */
+@keyframes recording-pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.2);
+    }
+}
+
+.recording-pulse {
+    animation: recording-pulse 1.5s ease-in-out infinite;
+}
+
+/* Voice Note Waveform Styles */
+.voice-note-player .waveform-progress {
+    transition: width 0.1s linear;
+}
+
+/* Voice Recording Controls Animation */
+#voice_recording_controls {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+#voice_recording_controls.hiding {
+    animation: fadeOut 0.2s ease-out;
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+}
+
+/* Message Dropdown Menu Styles */
+.message-dropdown-menu {
+    min-width: 200px;
+    animation: dropdownFadeIn 0.2s ease-out;
+}
+
+.message-dropdown-menu.hidden {
+    display: none;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message-menu-container {
+    position: relative;
+}
+
+.delete-message-btn:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* Message deleted indicator */
+.discord-message .text-gray-500.italic {
+    user-select: none;
+}

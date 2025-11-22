@@ -1,5 +1,35 @@
-{% if message.body %}
+{% if message.delete_msg %}
+    <span class="text-gray-500 italic flex items-center space-x-1">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+        </svg>
+        <span>This message was deleted</span>
+    </span>
+{% elif message.body %}
     <span>{{ message.body }}</span>
+{% elif message.voice_note %}
+    <div class="voice-note-player bg-gray-700 rounded-lg p-3 max-w-sm">
+        <div class="flex items-center space-x-3">
+            <button class="play-pause-btn w-10 h-10 bg-indigo-600 hover:bg-indigo-700 rounded-full flex items-center justify-center flex-shrink-0 transition-colors">
+                <svg class="play-icon w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                </svg>
+                <svg class="pause-icon w-5 h-5 text-white hidden" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+            </button>
+            <div class="flex-1 min-w-0">
+                <div class="waveform-container h-8 bg-gray-600 rounded relative overflow-hidden">
+                    <div class="waveform-progress absolute inset-0 bg-indigo-500" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between mt-1 text-xs text-gray-400">
+                    <span class="current-time">0:00</span>
+                    <span class="total-time">{% if message.duration %}{{ message.duration|floatformat:0 }}s{% else %}0s{% endif %}</span>
+                </div>
+            </div>
+        </div>
+        <audio class="hidden" src="{{ message.voice_note.url }}"></audio>
+    </div>
 {% elif message.file %}
     {% if message.is_image %}
         <img class="max-w-72 min-w-8" src="{{ message.file.url }}" alt="Uploaded Image" />

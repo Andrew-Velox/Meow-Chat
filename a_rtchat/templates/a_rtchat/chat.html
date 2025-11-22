@@ -208,12 +208,37 @@
                             <span id="attach_text">Attach</span>
                         </label>
                         <input id="id_file" name="file" type="file" class="hidden">
+                        <button type="button" id="voice_record_btn" class="button-gray cursor-pointer px-3 py-1 text-sm flex items-center space-x-1">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Voice</span>
+                        </button>
                         <button id="upload_button" class="button px-3 py-1 text-sm hidden" type="submit" disabled>
                             
                             Send File
                         </button>
                     </div>
                 </form>
+                
+                <!-- Voice Note Recording Controls -->
+                <div id="voice_recording_controls" class="px-3 pb-3 hidden">
+                    <div class="bg-red-600 rounded-lg p-3 flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="recording-pulse w-3 h-3 bg-white rounded-full"></div>
+                            <span class="text-white font-medium">Recording...</span>
+                            <span id="recording_time" class="text-white">0:00</span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button type="button" id="cancel_recording" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors">
+                                Cancel
+                            </button>
+                            <button type="button" id="stop_recording" class="px-3 py-1 bg-white text-red-600 font-medium rounded hover:bg-gray-100 transition-colors">
+                                Send
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -547,5 +572,282 @@
             this.scrollLeft += e.deltaY;
         });
     }
+    
+    // ============================================
+    // VOICE RECORDING FUNCTIONALITY
+    // ============================================
+    
+    let mediaRecorder;
+    let audioChunks = [];
+    let recordingStartTime;
+    let recordingInterval;
+    let isCancelled = false; // Flag to track if recording was cancelled
+
+    const voiceRecordBtn = document.getElementById('voice_record_btn');
+    const voiceRecordingControls = document.getElementById('voice_recording_controls');
+    const recordingTime = document.getElementById('recording_time');
+    const stopRecordingBtn = document.getElementById('stop_recording');
+    const cancelRecordingBtn = document.getElementById('cancel_recording');
+
+    // Format time in mm:ss
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // Start Recording
+    async function startRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            isCancelled = false; // Reset cancel flag
+            
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
+            
+            mediaRecorder.onstop = async () => {
+                // Only send if not cancelled
+                if (!isCancelled && audioChunks.length > 0) {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const duration = (Date.now() - recordingStartTime) / 1000;
+                    await sendVoiceNote(audioBlob, duration);
+                }
+                
+                // Stop all tracks and cleanup
+                stream.getTracks().forEach(track => track.stop());
+                audioChunks = [];
+            };
+            
+            mediaRecorder.start();
+            recordingStartTime = Date.now();
+            
+            // Show recording UI
+            voiceRecordingControls.classList.remove('hidden');
+            
+            // Update recording time
+            recordingInterval = setInterval(() => {
+                const elapsed = (Date.now() - recordingStartTime) / 1000;
+                recordingTime.textContent = formatTime(elapsed);
+            }, 100);
+            
+        } catch (error) {
+            console.error('Error accessing microphone:', error);
+            alert('Could not access microphone. Please grant permission and try again.');
+        }
+    }
+
+    // Stop Recording and Send
+    function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            isCancelled = false; // Ensure it's not marked as cancelled
+            mediaRecorder.stop();
+            clearInterval(recordingInterval);
+            voiceRecordingControls.classList.add('hidden');
+        }
+    }
+
+    // Cancel Recording
+    function cancelRecording() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            isCancelled = true; // Mark as cancelled
+            mediaRecorder.stop();
+            clearInterval(recordingInterval);
+            voiceRecordingControls.classList.add('hidden');
+            audioChunks = []; // Clear audio chunks
+        }
+    }
+
+    // Send Voice Note to Server
+    async function sendVoiceNote(audioBlob, duration) {
+        const formData = new FormData();
+        formData.append('voice_note', audioBlob, 'voice-note.webm');
+        formData.append('duration', duration);
+        
+        try {
+            const response = await fetch("{% url 'chat-voice-upload' chatroom_name %}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to upload voice note');
+            }
+        } catch (error) {
+            console.error('Error uploading voice note:', error);
+            alert('Failed to send voice note. Please try again.');
+        }
+    }
+
+    // Event Listeners for Voice Recording
+    if (voiceRecordBtn) {
+        voiceRecordBtn.addEventListener('click', startRecording);
+    }
+
+    if (stopRecordingBtn) {
+        stopRecordingBtn.addEventListener('click', stopRecording);
+    }
+
+    if (cancelRecordingBtn) {
+        cancelRecordingBtn.addEventListener('click', cancelRecording);
+    }
+
+    // ============================================
+    // VOICE NOTE PLAYER
+    // ============================================
+    
+    document.addEventListener('click', function(e) {
+        const playPauseBtn = e.target.closest('.play-pause-btn');
+        if (!playPauseBtn) return;
+        
+        const voicePlayer = playPauseBtn.closest('.voice-note-player');
+        const audio = voicePlayer.querySelector('audio');
+        const playIcon = playPauseBtn.querySelector('.play-icon');
+        const pauseIcon = playPauseBtn.querySelector('.pause-icon');
+        const currentTimeEl = voicePlayer.querySelector('.current-time');
+        const progressBar = voicePlayer.querySelector('.waveform-progress');
+        
+        if (audio.paused) {
+            // Pause all other audio players
+            document.querySelectorAll('.voice-note-player audio').forEach(a => {
+                if (a !== audio) {
+                    a.pause();
+                    const otherPlayer = a.closest('.voice-note-player');
+                    const otherPlayIcon = otherPlayer.querySelector('.play-icon');
+                    const otherPauseIcon = otherPlayer.querySelector('.pause-icon');
+                    if (otherPlayIcon) otherPlayIcon.classList.remove('hidden');
+                    if (otherPauseIcon) otherPauseIcon.classList.add('hidden');
+                }
+            });
+            
+            audio.play();
+            playIcon.classList.add('hidden');
+            pauseIcon.classList.remove('hidden');
+        } else {
+            audio.pause();
+            playIcon.classList.remove('hidden');
+            pauseIcon.classList.add('hidden');
+        }
+        
+        // Update progress
+        audio.ontimeupdate = () => {
+            const progress = (audio.currentTime / audio.duration) * 100;
+            progressBar.style.width = progress + '%';
+            currentTimeEl.textContent = formatTime(audio.currentTime);
+        };
+        
+        // Reset on end
+        audio.onended = () => {
+            playIcon.classList.remove('hidden');
+            pauseIcon.classList.add('hidden');
+            progressBar.style.width = '0%';
+            currentTimeEl.textContent = '0:00';
+        };
+    });
+    
+    // ============================================
+    // MESSAGE DROPDOWN MENU & DELETE FUNCTIONALITY
+    // ============================================
+    
+    // Toggle dropdown menu
+    document.addEventListener('click', function(e) {
+        const menuBtn = e.target.closest('.message-menu-btn');
+        
+        if (menuBtn) {
+            e.stopPropagation();
+            const container = menuBtn.closest('.message-menu-container');
+            const dropdown = container.querySelector('.message-dropdown-menu');
+            
+            // Close all other dropdowns
+            document.querySelectorAll('.message-dropdown-menu').forEach(menu => {
+                if (menu !== dropdown) {
+                    menu.classList.add('hidden');
+                }
+            });
+            
+            // Toggle current dropdown
+            dropdown.classList.toggle('hidden');
+        } else {
+            // Close all dropdowns when clicking outside
+            document.querySelectorAll('.message-dropdown-menu').forEach(menu => {
+                menu.classList.add('hidden');
+            });
+        }
+    });
+    
+    // Delete message functionality
+    document.addEventListener('click', function(e) {
+        const deleteBtn = e.target.closest('.delete-message-btn');
+        if (!deleteBtn) return;
+        
+        e.stopPropagation();
+        
+        const messageId = deleteBtn.dataset.messageId;
+        
+        // Show confirmation dialog
+        if (!confirm('Are you sure you want to delete this message? This action cannot be undone.')) {
+            return;
+        }
+        
+        // Send delete request
+        fetch(`/chat/message_delete/${messageId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.message || 'Failed to delete message');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                // Find and update the message element
+                const messageElements = document.querySelectorAll('.discord-message');
+                messageElements.forEach(msgEl => {
+                    const msgDeleteBtn = msgEl.querySelector('.delete-message-btn');
+                    if (msgDeleteBtn && msgDeleteBtn.dataset.messageId === messageId) {
+                        // Replace message content with deleted indicator
+                        const messageBody = msgEl.querySelector('.text-gray-300.break-words');
+                        if (messageBody) {
+                            messageBody.innerHTML = `
+                                <span class="text-gray-500 italic flex items-center space-x-1">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>This message was deleted</span>
+                                </span>
+                            `;
+                        }
+                        
+                        // Remove the message actions
+                        const messageActions = msgEl.querySelector('.opacity-0.group-hover\\:opacity-100');
+                        if (messageActions) {
+                            messageActions.remove();
+                        }
+                    }
+                });
+                
+                // Close dropdown
+                document.querySelectorAll('.message-dropdown-menu').forEach(menu => {
+                    menu.classList.add('hidden');
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting message:', error);
+            alert(error.message || 'Failed to delete message. Please try again.');
+        });
+    });
 </script>
 {% endblock %}

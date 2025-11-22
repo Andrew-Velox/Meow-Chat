@@ -1,4 +1,5 @@
 from django.shortcuts import render,get_object_or_404,redirect
+from django.utils import timezone
 from .models import *
 from .forms import *
 from django.contrib.auth.decorators import login_required
@@ -187,6 +188,31 @@ def chat_file_upload(request, chatroom_name):
 
     return HttpResponse()
 
+@login_required
+def chat_voice_upload(request, chatroom_name):
+    chat_group = get_object_or_404(ChatGroup, group_name=chatroom_name)
+
+
+    if request.method == 'POST' and request.FILES:
+        voice_file = request.FILES.get('voice_note')
+        duration = request.POST.get('duration', 0)
+
+        messages = GroupMessage.objects.create(
+            voice_note=voice_file,
+            duration=float(duration),
+            author=request.user,
+            group=chat_group
+        )
+
+        channel_layer = get_channel_layer()
+        event = {
+            'type': 'message_handler',
+            "message_id": messages.id,
+        }
+
+        async_to_sync(channel_layer.group_send)(chatroom_name, event)
+        return HttpResponse()
+    return HttpResponse(status=400)
 
 @login_required
 def user_chats_api(request):
@@ -226,3 +252,28 @@ def user_chats_api(request):
         chats_data.append(chat_data)
     
     return JsonResponse(chats_data, safe=False)
+
+
+@login_required
+def delete_message_view(request, pk):
+    message = get_object_or_404(GroupMessage, pk=pk)
+
+    if message.author != request.user and message.group.admin != request.user:
+        return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
+    
+    time_limit = timezone.now() - timezone.timedelta(minutes=30)
+
+    if message.created < time_limit:
+        return JsonResponse({'status': 'error', 'message': 'Time limit exceeded for deleting this message'}, status=400)
+    
+    message.delete_msg = True
+    message.deleted_at = timezone.now()
+    message.body = None
+    message.save()
+
+    if message.file:
+        message.file.delete()
+    if message.voice_note:
+        message.voice_note.delete()
+    
+    return JsonResponse({'status': 'success', 'message_id': pk})

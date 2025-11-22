@@ -27,7 +27,12 @@ class GroupMessage(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     body = models.CharField(max_length=300,blank=True,null=True)
     file = models.FileField(upload_to='files/', blank=True, null=True)
+    voice_note = models.FileField(upload_to='voice_notes/', blank=True, null=True)
+    duration = models.FloatField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
+
+    delete_msg = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     @property
     def filename(self):
@@ -38,10 +43,17 @@ class GroupMessage(models.Model):
 
 
     def __str__(self):
+        if self.delete_msg:
+            return f"{self.author.username}: [deleted]"
         if self.body:
             return f"{self.author.username}: {self.body[:20]}..."
+        elif self.voice_note:
+            return f"{self.author.username}: [voice note]"
         elif self.file:
             return f"{self.author.username}: {self.filename}"
+        else:
+            return f"{self.author.username}: [message]"
+    
     class Meta:
         ordering = ['-created']
 
