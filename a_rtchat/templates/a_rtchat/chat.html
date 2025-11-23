@@ -156,90 +156,92 @@
 
         <!-- Message Input Area -->
         <div class="p-4">
-            <div class="bg-gray-700 rounded-lg">
-                <form id="chat_message_form" class="flex items-end space-x-3 p-3" 
-                hx-ext="ws" 
-                ws-connect="/ws/chatroom/{{ chatroom_name }}"
-                ws-send
-                _="on htmx:wsAfterSend reset() me">
-                    {% csrf_token %}
-                    <div class="flex-1">
-                        {{ form }}
+            <!-- File Preview Area (initially hidden) -->
+            <div id="file_preview" class="mb-2 hidden">
+                <div class="bg-gray-700 rounded-lg p-3 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div id="file_icon" class="flex-shrink-0">
+                            <!-- File icon will be inserted here -->
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div id="file_name" class="text-sm text-white font-medium truncate"></div>
+                            <div id="file_info" class="text-xs text-gray-400"></div>
+                        </div>
                     </div>
-                    <button type="submit" class="button px-4 py-2 text-sm">
+                    <button type="button" id="remove_file" class="ml-2 p-1 hover:bg-gray-600 rounded text-gray-400 hover:text-white transition-colors">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
                         </svg>
                     </button>
-                </form>
-                
-                <!-- File Preview Area (initially hidden) -->
-                <div id="file_preview" class="px-3 pb-2 hidden">
-                    <div class="bg-gray-600 rounded-lg p-3 flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                            <div id="file_icon" class="flex-shrink-0">
-                                <!-- File icon will be inserted here -->
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div id="file_name" class="text-sm text-white font-medium truncate"></div>
-                                <div id="file_info" class="text-xs text-gray-400"></div>
-                            </div>
-                        </div>
-                        <button type="button" id="remove_file" class="ml-2 p-1 hover:bg-gray-500 rounded text-gray-400 hover:text-white transition-colors">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                            </svg>
-                        </button>
-                    </div>
                 </div>
-
-                <!-- File Upload Form -->
-                <form id="file_upload_form" enctype="multipart/form-data" class="px-3 pb-3" 
-                hx-post="{% url 'chat-file-upload' chat_group.group_name %}" 
-                hx-target="#chat_messages" 
-                hx-swap="beforeend" 
-                _="on htmx:beforeSend reset() me">
-                    {% csrf_token %}
-                    <div id="upload_controls" class="flex items-center space-x-2 w-full">
-                        <label for="id_file" class="button-gray cursor-pointer px-3 py-1 text-sm flex items-center space-x-1">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                            <span id="attach_text">Attach</span>
-                        </label>
-                        <input id="id_file" name="file" type="file" class="hidden">
-                        <button type="button" id="voice_record_btn" class="button-gray cursor-pointer px-3 py-1 text-sm flex items-center space-x-1">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>Voice</span>
-                        </button>
-                        <button id="upload_button" class="button px-3 py-1 text-sm hidden" type="submit" disabled>
-                            
-                            Send File
-                        </button>
+            </div>
+            
+            <!-- Voice Note Recording Controls -->
+            <div id="voice_recording_controls" class="mb-2 hidden">
+                <div class="bg-red-600 rounded-lg p-3 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="recording-pulse w-3 h-3 bg-white rounded-full"></div>
+                        <span class="text-white font-medium">Recording...</span>
+                        <span id="recording_time" class="text-white">0:00</span>
                     </div>
-                </form>
-                
-                <!-- Voice Note Recording Controls -->
-                <div id="voice_recording_controls" class="px-3 pb-3 hidden">
-                    <div class="bg-red-600 rounded-lg p-3 flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                            <div class="recording-pulse w-3 h-3 bg-white rounded-full"></div>
-                            <span class="text-white font-medium">Recording...</span>
-                            <span id="recording_time" class="text-white">0:00</span>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button type="button" id="cancel_recording" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors">
-                                Cancel
-                            </button>
-                            <button type="button" id="stop_recording" class="px-3 py-1 bg-white text-red-600 font-medium rounded hover:bg-gray-100 transition-colors">
-                                Send
-                            </button>
-                        </div>
+                    <div class="flex space-x-2">
+                        <button type="button" id="cancel_recording" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors">
+                            Cancel
+                        </button>
+                        <button type="button" id="stop_recording" class="px-3 py-1 bg-white text-red-600 font-medium rounded hover:bg-gray-100 transition-colors">
+                            Send
+                        </button>
                     </div>
                 </div>
             </div>
+
+            <!-- Message Input Box -->
+            <div class="flex items-center space-x-2">
+                <!-- Input Container -->
+                <div class="bg-gray-700 rounded-lg flex items-center px-3 flex-1 min-w-0">
+                    <!-- Message Form -->
+                    <form id="chat_message_form" class="w-full" 
+                    hx-ext="ws" 
+                    ws-connect="/ws/chatroom/{{ chatroom_name }}"
+                    ws-send
+                    _="on htmx:wsAfterSend reset() me">
+                        {% csrf_token %}
+                        {{ form }}
+                    </form>
+                </div>
+                
+                <!-- Attach File Button -->
+                <button type="button" id="attach_file_btn" onclick="document.getElementById('id_file').click()" class="cursor-pointer p-2.5 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors flex-shrink-0">
+                    <svg class="w-5 h-5 text-gray-400 hover:text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+                
+                <!-- Voice Button -->
+                <button type="button" id="voice_record_btn" class="cursor-pointer p-2.5 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors flex-shrink-0">
+                    <svg class="w-5 h-5 text-gray-400 hover:text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+                
+                <!-- Send Button -->
+                <button type="button" onclick="document.getElementById('chat_message_form').dispatchEvent(new Event('submit'))" class="cursor-pointer p-2.5 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors flex-shrink-0">
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Hidden File Upload Form -->
+            <form id="file_upload_form" enctype="multipart/form-data" class="hidden" 
+            hx-post="{% url 'chat-file-upload' chat_group.group_name %}" 
+            hx-target="#chat_messages" 
+            hx-swap="beforeend" 
+            _="on htmx:beforeSend reset() me">
+                {% csrf_token %}
+                <input id="id_file" name="file" type="file" class="hidden">
+                <button id="upload_button" class="hidden" type="submit"></button>
+            </form>
         </div>
     </div>
 </div>
@@ -354,9 +356,11 @@
         fileIcon.innerHTML = getFileIcon(file.type, file.name);
         
         filePreview.classList.remove('hidden');
-        uploadButton.classList.remove('hidden');
-        uploadButton.disabled = false;
-        attachText.textContent = 'Change File';
+        
+        // Auto-submit the file upload form
+        setTimeout(() => {
+            uploadButton.click();
+        }, 100);
     }
 
     function hideFilePreview() {
@@ -367,9 +371,6 @@
         setTimeout(() => {
             filePreview.classList.add('hidden');
             filePreview.classList.remove('hiding');
-            uploadButton.classList.add('hidden');
-            uploadButton.disabled = true;
-            attachText.textContent = 'Attach';
             fileInput.value = '';
         }, 200);
     }
@@ -526,7 +527,7 @@
         });
     }
 
-    // Handle WebSocket messages for online status
+    // Handle WebSocket messages for online status and message deletion
     document.body.addEventListener('htmx:wsAfterMessage', function(event) {
         try {
             const data = JSON.parse(event.detail.message);
@@ -558,6 +559,10 @@
                         'green-dot absolute border-2 border-gray-600 -bottom-1 -right-1' : 
                         'gray-dot absolute border-2 border-gray-600 -bottom-1 -right-1';
                 });
+            } else if (data.event === 'message_deleted') {
+                // Handle real-time message deletion
+                const messageId = data.message_id;
+                handleMessageDeletion(messageId);
             }
         } catch (e) {
             // Not a JSON message, probably a regular chat message
@@ -780,6 +785,44 @@
         }
     });
     
+    // Function to handle message deletion UI update
+    function handleMessageDeletion(messageId) {
+        // Find the message by its data-message-id attribute
+        const messageElement = document.querySelector(`.discord-message[data-message-id="${messageId}"]`);
+        
+        if (messageElement) {
+            // Stop and cleanup any playing audio
+            const audioElement = messageElement.querySelector('audio');
+            if (audioElement) {
+                audioElement.pause();
+                audioElement.src = '';
+                audioElement.load();
+            }
+            
+            // Find the message body container (it has break-words class)
+            const messageBodyContainer = messageElement.querySelector('.break-words');
+            if (messageBodyContainer) {
+                messageBodyContainer.innerHTML = `
+                    <span class="text-gray-500 italic flex items-center space-x-1">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>This message was deleted</span>
+                        </span>
+                    `;
+                }
+                
+                // Remove the message actions
+                const messageActions = messageElement.querySelector('.opacity-0.group-hover\\:opacity-100');
+                if (messageActions) {
+                    messageActions.remove();
+                }
+            }        // Close dropdown
+        document.querySelectorAll('.message-dropdown-menu').forEach(menu => {
+            menu.classList.add('hidden');
+        });
+    }
+    
     // Delete message functionality
     document.addEventListener('click', function(e) {
         const deleteBtn = e.target.closest('.delete-message-btn');
@@ -812,36 +855,8 @@
         })
         .then(data => {
             if (data.status === 'success') {
-                // Find and update the message element
-                const messageElements = document.querySelectorAll('.discord-message');
-                messageElements.forEach(msgEl => {
-                    const msgDeleteBtn = msgEl.querySelector('.delete-message-btn');
-                    if (msgDeleteBtn && msgDeleteBtn.dataset.messageId === messageId) {
-                        // Replace message content with deleted indicator
-                        const messageBody = msgEl.querySelector('.text-gray-300.break-words');
-                        if (messageBody) {
-                            messageBody.innerHTML = `
-                                <span class="text-gray-500 italic flex items-center space-x-1">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
-                                    </svg>
-                                    <span>This message was deleted</span>
-                                </span>
-                            `;
-                        }
-                        
-                        // Remove the message actions
-                        const messageActions = msgEl.querySelector('.opacity-0.group-hover\\:opacity-100');
-                        if (messageActions) {
-                            messageActions.remove();
-                        }
-                    }
-                });
-                
-                // Close dropdown
-                document.querySelectorAll('.message-dropdown-menu').forEach(menu => {
-                    menu.classList.add('hidden');
-                });
+                // WebSocket will handle the UI update for all users
+                // No need to manually update here as it will be done via WebSocket broadcast
             }
         })
         .catch(error => {

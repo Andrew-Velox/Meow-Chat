@@ -116,6 +116,14 @@ class ChatroomConsumer(WebsocketConsumer):
             "event": "user_left",
             "username": username,
         }))
+    
+    def message_deleted_handler(self, event):
+        message_id = event['message_id']
+        # Send message deletion event to all connected clients
+        self.send(text_data=json.dumps({
+            'event': 'message_deleted',
+            'message_id': message_id,
+        }))
 
 
 class OnlineStatusConsumer(WebsocketConsumer):

@@ -269,11 +269,26 @@ def delete_message_view(request, pk):
     message.delete_msg = True
     message.deleted_at = timezone.now()
     message.body = None
-    message.save()
-
+    message.duration = None
+    
+    # Delete file and clear field references
     if message.file:
         message.file.delete()
+        message.file = None
     if message.voice_note:
         message.voice_note.delete()
+        message.voice_note = None
+    
+    message.save()
+    
+    # Broadcast deletion to all users in the chatroom via WebSocket
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        message.group.group_name,
+        {
+            'type': 'message_deleted_handler',
+            'message_id': pk,
+        }
+    )
     
     return JsonResponse({'status': 'success', 'message_id': pk})

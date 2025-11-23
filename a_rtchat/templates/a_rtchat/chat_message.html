@@ -1,5 +1,5 @@
 <!-- Discord-style message -->
-<div class="discord-message group relative">
+<div class="discord-message group relative" data-message-id="{{ message.id }}">
     <div class="flex items-start space-x-3">
         <!-- Avatar -->
         <a href="{% url 'profile' message.author.username %}" class="flex-shrink-0">
